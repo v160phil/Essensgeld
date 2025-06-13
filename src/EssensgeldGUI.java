@@ -153,7 +153,7 @@ public class EssensgeldGUI extends JFrame {
             int abendsAnz = Integer.parseInt(abendsAnzahlFeld.getText());
 
             if (morgensAnz < 0 || morgensAnz > 7 || mittagsAnz < 0 || mittagsAnz > 7 || abendsAnz < 0 || abendsAnz > 7) {
-                ergebnisLabel.setText("lAnzahl muss zwischen 0 und 7 liegen!");
+                ergebnisLabel.setText("Anzahl muss zwischen 0 und 7 liegen!");
                 return;
             }
 
