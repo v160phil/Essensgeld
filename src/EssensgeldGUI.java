@@ -153,15 +153,15 @@ public class EssensgeldGUI extends JFrame {
             int abendsAnz = Integer.parseInt(abendsAnzahlFeld.getText());
 
             if (morgensAnz < 0 || morgensAnz > 7 || mittagsAnz < 0 || mittagsAnz > 7 || abendsAnz < 0 || abendsAnz > 7) {
-                ergebnisLabel.setText("⚠ Anzahl muss zwischen 0 und 7 liegen!");
+                ergebnisLabel.setText("Anzahl muss zwischen 0 und 7 liegen!");
                 return;
             }
 
             double gesamt = (morgensSatz * morgensAnz) + (mittagsSatz * mittagsAnz) + (abendsSatz * abendsAnz);
-            ergebnisLabel.setText(String.format("✅ Gesamtbetrag: %.2f €", gesamt));
+            ergebnisLabel.setText(String.format("Gesamtbetrag: %.2f €", gesamt));
 
         } catch (NumberFormatException ex) {
-            ergebnisLabel.setText("⚠ Bitte gültige Zahlen eingeben!");
+            ergebnisLabel.setText("Bitte gültige Zahlen eingeben!");
         }
     }
 
