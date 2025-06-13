@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Essensgeld:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Essensgeld_jar</output-path>
+    <root id="archive" name="Essensgeld.jar">
+      <element id="module-output" name="Essensgeld" />
+    </root>
+  </artifact>
+</component>
