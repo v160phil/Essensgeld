@@ -8,7 +8,7 @@ public class EssensgeldGUI extends JFrame {
     private final File satzDatei = new File("geldsaetze.txt");
 
     private JTextField tfMorgens, tfMittags, tfAbends;
-    private JLabel lblMorgensTeil, lblMittagsTeil, lblAbendsTeil, lblGesamt;
+    private JLabel lblMorgensSatz, lblMittagsSatz, lblAbendsSatz, lblGesamt;
 
     public EssensgeldGUI() {
         baueGUI();
@@ -36,22 +36,22 @@ public class EssensgeldGUI extends JFrame {
         grid.add(new JLabel("Morgens:"));
         tfMorgens = new JTextField();
         grid.add(tfMorgens);
-        lblMorgensTeil = new JLabel("(0 €)");
-        grid.add(lblMorgensTeil);
+        lblMorgensSatz = new JLabel("(0,00 €)");
+        grid.add(lblMorgensSatz);
         grid.add(new JLabel());
 
         grid.add(new JLabel("Mittags:"));
         tfMittags = new JTextField();
         grid.add(tfMittags);
-        lblMittagsTeil = new JLabel("(0 €)");
-        grid.add(lblMittagsTeil);
+        lblMittagsSatz = new JLabel("(0,00 €)");
+        grid.add(lblMittagsSatz);
         grid.add(new JLabel());
 
         grid.add(new JLabel("Abends:"));
         tfAbends = new JTextField();
         grid.add(tfAbends);
-        lblAbendsTeil = new JLabel("(0 €)");
-        grid.add(lblAbendsTeil);
+        lblAbendsSatz = new JLabel("(0,00 €)");
+        grid.add(lblAbendsSatz);
         grid.add(new JLabel());
 
         add(grid, BorderLayout.CENTER);
@@ -108,9 +108,6 @@ public class EssensgeldGUI extends JFrame {
             double betragAbends  = a * abendsSatz;
             double gesamt        = betragMorgens + betragMittags + betragAbends;
 
-            lblMorgensTeil.setText(String.format("(%.2f €)", betragMorgens));
-            lblMittagsTeil.setText(String.format("(%.2f €)", betragMittags));
-            lblAbendsTeil.setText(String.format("(%.2f €)", betragAbends));
             lblGesamt.setText(String.format("Gesamtbetrag: %.2f €", gesamt));
 
         } catch (NumberFormatException ex) {
@@ -141,8 +138,10 @@ public class EssensgeldGUI extends JFrame {
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE);
 
-                if (res == JOptionPane.YES_OPTION)
+                if (res == JOptionPane.YES_OPTION) {
+                    zeigeGeldsaetzeLabels();
                     return true;
+                }
 
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this,
@@ -173,6 +172,7 @@ public class EssensgeldGUI extends JFrame {
             abendsSatz = Double.parseDouble(tfAbend.getText().trim().replace(",", "."));
 
             speichereSaetze();
+            zeigeGeldsaetzeLabels();
             return true;
 
         } catch (NumberFormatException e) {
@@ -194,6 +194,12 @@ public class EssensgeldGUI extends JFrame {
                     "Warnung",
                     JOptionPane.WARNING_MESSAGE);
         }
+    }
+
+    private void zeigeGeldsaetzeLabels() {
+        lblMorgensSatz.setText(String.format("(%.2f €)", morgensSatz));
+        lblMittagsSatz.setText(String.format("(%.2f €)", mittagsSatz));
+        lblAbendsSatz.setText(String.format("(%.2f €)", abendsSatz));
     }
 
     public static void main(String[] args) {
