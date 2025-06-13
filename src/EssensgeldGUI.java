@@ -1,167 +1,198 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.io.*;
 
 public class EssensgeldGUI extends JFrame {
 
-    private JTextField morgensAnzahlFeld, mittagsAnzahlFeld, abendsAnzahlFeld;
-    private JLabel ergebnisLabel;
     private double morgensSatz, mittagsSatz, abendsSatz;
     private final File satzDatei = new File("geldsaetze.txt");
 
+    private JTextField tfMorgens, tfMittags, tfAbends;
+    private JLabel lblMorgensTeil, lblMittagsTeil, lblAbendsTeil, lblGesamt;
+
     public EssensgeldGUI() {
-        erzeugeGUI(); // GUI zuerst
+        baueGUI();
         SwingUtilities.invokeLater(() -> {
-            boolean geladen = ladeOderFrageGeldsaetze(false);
-            if (!geladen) {
+            if (!ladeOderFrageGeldsaetze(false)) {
                 dispose();
                 System.exit(0);
             }
         });
     }
 
-    private boolean ladeOderFrageGeldsaetze(boolean immerFragen) {
-        if (satzDatei.exists() && !immerFragen) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(satzDatei))) {
-                morgensSatz = Double.parseDouble(reader.readLine());
-                mittagsSatz = Double.parseDouble(reader.readLine());
-                abendsSatz = Double.parseDouble(reader.readLine());
-
-                String message = String.format(
-                        "Gespeicherte Geldsätze:\nMorgens: %.2f €\nMittags: %.2f €\nAbends: %.2f €\n\nStimmen diese noch?",
-                        morgensSatz, mittagsSatz, abendsSatz
-                );
-
-                int antwort = JOptionPane.showConfirmDialog(this, message, "Geldsätze bestätigen", JOptionPane.YES_NO_OPTION);
-                if (antwort == JOptionPane.YES_OPTION) return true;
-
-            } catch (IOException | NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Fehler beim Lesen der Datei. Neue Eingabe erforderlich.");
-            }
-        }
-
-        Double neuerMorgens = frageSatz("Neuer Betrag für morgens (€):");
-        if (neuerMorgens == null) return false;
-
-        Double neuerMittags = frageSatz("Neuer Betrag für mittags (€):");
-        if (neuerMittags == null) return false;
-
-        Double neuerAbends = frageSatz("Neuer Betrag für abends (€):");
-        if (neuerAbends == null) return false;
-
-        morgensSatz = neuerMorgens;
-        mittagsSatz = neuerMittags;
-        abendsSatz = neuerAbends;
-        speichereGeldsaetze();
-        return true;
-    }
-
-    private Double frageSatz(String text) {
-        while (true) {
-            String eingabe = JOptionPane.showInputDialog(this, text);
-            if (eingabe == null) return null;
-            try {
-                return Double.parseDouble(eingabe);
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Bitte eine gültige Zahl eingeben.");
-            }
-        }
-    }
-
-    private void speichereGeldsaetze() {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(satzDatei))) {
-            writer.println(morgensSatz);
-            writer.println(mittagsSatz);
-            writer.println(abendsSatz);
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Fehler beim Speichern der Geldsätze.");
-        }
-    }
-
-    private void erzeugeGUI() {
+    private void baueGUI() {
         setTitle("Essensgeld Rechner");
-        setSize(450, 320);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(430, 330);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
-        getContentPane().setBackground(new Color(245, 250, 255));
+        setResizable(false);
+        getContentPane().setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(new Color(245, 249, 255));
 
-        JPanel eingabePanel = new JPanel(new GridLayout(3, 2, 10, 10));
-        eingabePanel.setBorder(BorderFactory.createTitledBorder("Wie oft gegessen? (0–7)"));
-        eingabePanel.setBackground(new Color(245, 250, 255));
+        JPanel grid = new JPanel(new GridLayout(6, 2, 8, 4));
+        grid.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+        grid.setBackground(getContentPane().getBackground());
 
-        eingabePanel.add(new JLabel("Morgens:"));
-        morgensAnzahlFeld = new JTextField();
-        eingabePanel.add(morgensAnzahlFeld);
+        grid.add(new JLabel("Morgens:"));
+        tfMorgens = new JTextField();
+        grid.add(tfMorgens);
+        lblMorgensTeil = new JLabel("(0 €)");
+        grid.add(lblMorgensTeil);
+        grid.add(new JLabel());
 
-        eingabePanel.add(new JLabel("Mittags:"));
-        mittagsAnzahlFeld = new JTextField();
-        eingabePanel.add(mittagsAnzahlFeld);
+        grid.add(new JLabel("Mittags:"));
+        tfMittags = new JTextField();
+        grid.add(tfMittags);
+        lblMittagsTeil = new JLabel("(0 €)");
+        grid.add(lblMittagsTeil);
+        grid.add(new JLabel());
 
-        eingabePanel.add(new JLabel("Abends:"));
-        abendsAnzahlFeld = new JTextField();
-        eingabePanel.add(abendsAnzahlFeld);
+        grid.add(new JLabel("Abends:"));
+        tfAbends = new JTextField();
+        grid.add(tfAbends);
+        lblAbendsTeil = new JLabel("(0 €)");
+        grid.add(lblAbendsTeil);
+        grid.add(new JLabel());
 
-        add(eingabePanel, BorderLayout.CENTER);
+        add(grid, BorderLayout.CENTER);
 
-        JPanel untenPanel = new JPanel(new BorderLayout(8, 8));
-        untenPanel.setBackground(new Color(245, 250, 255));
-        untenPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+        lblGesamt = new JLabel(" ");
+        lblGesamt.setHorizontalAlignment(SwingConstants.CENTER);
+        lblGesamt.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        add(lblGesamt, BorderLayout.NORTH);
 
-        ergebnisLabel = new JLabel("Gesamtbetrag: ", SwingConstants.CENTER);
-        ergebnisLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        ergebnisLabel.setForeground(new Color(0, 100, 160));
-        untenPanel.add(ergebnisLabel, BorderLayout.NORTH);
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+        btnPanel.setBackground(getContentPane().getBackground());
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
-        buttonPanel.setBackground(new Color(245, 250, 255));
+        JButton btnBerechnen = new JButton("Berechnen");
+        btnBerechnen.setBackground(new Color(0, 120, 215));
+        btnBerechnen.setForeground(Color.WHITE);
+        btnBerechnen.addActionListener(e -> berechne());
 
-        JButton berechnenButton = new JButton("Berechnen");
-        berechnenButton.setBackground(new Color(0, 120, 215));
-        berechnenButton.setForeground(Color.WHITE);
-        berechnenButton.setFocusPainted(false);
-        berechnenButton.addActionListener(e -> berechneEssensgeld());
-        buttonPanel.add(berechnenButton);
-
-        JButton saetzeAendernButton = new JButton("Essenssätze ändern");
-        saetzeAendernButton.setBackground(new Color(180, 80, 80));
-        saetzeAendernButton.setForeground(Color.WHITE);
-        saetzeAendernButton.setFocusPainted(false);
-        saetzeAendernButton.addActionListener(e -> {
-            boolean geaendert = ladeOderFrageGeldsaetze(true);
-            if (geaendert) {
-                JOptionPane.showMessageDialog(this, "Sätze wurden aktualisiert.");
+        JButton btnSaetze = new JButton("Essenssätze ändern");
+        btnSaetze.setBackground(new Color(178, 34, 34));
+        btnSaetze.setForeground(Color.WHITE);
+        btnSaetze.addActionListener(e -> {
+            if (ladeOderFrageGeldsaetze(true)) {
+                JOptionPane.showMessageDialog(this, "Essenssätze wurden aktualisiert.");
             }
         });
-        buttonPanel.add(saetzeAendernButton);
 
-        untenPanel.add(buttonPanel, BorderLayout.CENTER);
+        btnPanel.add(btnBerechnen);
+        btnPanel.add(btnSaetze);
 
-        JLabel copyright = new JLabel("Code by Philipp");
-        copyright.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        untenPanel.add(copyright, BorderLayout.SOUTH);
+        JPanel south = new JPanel(new BorderLayout());
+        south.setBackground(getContentPane().getBackground());
+        south.add(btnPanel, BorderLayout.CENTER);
 
-        add(untenPanel, BorderLayout.SOUTH);
+        JLabel copy = new JLabel("Code by Philipp");
+        copy.setBorder(BorderFactory.createEmptyBorder(0, 10, 5, 0));
+        south.add(copy, BorderLayout.WEST);
+
+        add(south, BorderLayout.SOUTH);
+
         setVisible(true);
     }
 
-    private void berechneEssensgeld() {
+    private void berechne() {
         try {
-            int morgensAnz = Integer.parseInt(morgensAnzahlFeld.getText());
-            int mittagsAnz = Integer.parseInt(mittagsAnzahlFeld.getText());
-            int abendsAnz = Integer.parseInt(abendsAnzahlFeld.getText());
+            int m = Integer.parseInt(tfMorgens.getText().trim());
+            int mi = Integer.parseInt(tfMittags.getText().trim());
+            int a = Integer.parseInt(tfAbends.getText().trim());
 
-            if (morgensAnz < 0 || morgensAnz > 7 || mittagsAnz < 0 || mittagsAnz > 7 || abendsAnz < 0 || abendsAnz > 7) {
-                ergebnisLabel.setText("Anzahl muss zwischen 0 und 7 liegen!");
-                return;
-            }
+            if (m < 0 || m > 7 || mi < 0 || mi > 7 || a < 0 || a > 7)
+                throw new NumberFormatException();
 
-            double gesamt = (morgensSatz * morgensAnz) + (mittagsSatz * mittagsAnz) + (abendsSatz * abendsAnz);
-            ergebnisLabel.setText(String.format("Gesamtbetrag: %.2f €", gesamt));
+            double betragMorgens = m * morgensSatz;
+            double betragMittags = mi * mittagsSatz;
+            double betragAbends  = a * abendsSatz;
+            double gesamt        = betragMorgens + betragMittags + betragAbends;
+
+            lblMorgensTeil.setText(String.format("(%.2f €)", betragMorgens));
+            lblMittagsTeil.setText(String.format("(%.2f €)", betragMittags));
+            lblAbendsTeil.setText(String.format("(%.2f €)", betragAbends));
+            lblGesamt.setText(String.format("Gesamtbetrag: %.2f €", gesamt));
 
         } catch (NumberFormatException ex) {
-            ergebnisLabel.setText("Bitte gültige Zahlen eingeben!");
+            JOptionPane.showMessageDialog(this,
+                    "Bitte ganze Zahlen zwischen 0 und 7 eingeben.",
+                    "Eingabefehler",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private boolean ladeOderFrageGeldsaetze(boolean immerFragen) {
+        if (satzDatei.exists() && !immerFragen) {
+            try (BufferedReader br = new BufferedReader(new FileReader(satzDatei))) {
+                morgensSatz = Double.parseDouble(br.readLine());
+                mittagsSatz = Double.parseDouble(br.readLine());
+                abendsSatz  = Double.parseDouble(br.readLine());
+
+                String msg = String.format(
+                        "Gespeicherte Geldsätze:\n" +
+                                "Morgens: %.2f €\n" +
+                                "Mittags: %.2f €\n" +
+                                "Abends:  %.2f €\n\n" +
+                                "Stimmen diese noch?",
+                        morgensSatz, mittagsSatz, abendsSatz);
+
+                int res = JOptionPane.showConfirmDialog(this, msg,
+                        "Geldsätze bestätigen",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE);
+
+                if (res == JOptionPane.YES_OPTION)
+                    return true;
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this,
+                        "Fehler beim Lesen der Datei – neue Eingabe nötig.");
+            }
+        }
+
+        JTextField tfMorgen = new JTextField();
+        JTextField tfMittag = new JTextField();
+        JTextField tfAbend = new JTextField();
+
+        JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
+        panel.add(new JLabel("Neuer Betrag für morgens (€):"));
+        panel.add(tfMorgen);
+        panel.add(new JLabel("Neuer Betrag für mittags (€):"));
+        panel.add(tfMittag);
+        panel.add(new JLabel("Neuer Betrag für abends (€):"));
+        panel.add(tfAbend);
+
+        int result = JOptionPane.showConfirmDialog(this, panel,
+                "Essenssätze eingeben", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+        if (result != JOptionPane.OK_OPTION) return false;
+
+        try {
+            morgensSatz = Double.parseDouble(tfMorgen.getText().trim().replace(",", "."));
+            mittagsSatz = Double.parseDouble(tfMittag.getText().trim().replace(",", "."));
+            abendsSatz = Double.parseDouble(tfAbend.getText().trim().replace(",", "."));
+
+            speichereSaetze();
+            return true;
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Ungültige Eingabe – bitte gültige Zahlen verwenden.",
+                    "Fehler", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+
+    private void speichereSaetze() {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(satzDatei))) {
+            pw.println(morgensSatz);
+            pw.println(mittagsSatz);
+            pw.println(abendsSatz);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Konnte Geldsätze nicht speichern.",
+                    "Warnung",
+                    JOptionPane.WARNING_MESSAGE);
         }
     }
 
